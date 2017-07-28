@@ -1,6 +1,7 @@
 FROM alpine:latest
 
 ARG OPENSSL_FIPS_VER=2.0.16
+ARG OPENSSL_FIPS_HMACSHA1=e8dbfa6cb9e22a049ec625ffb7ccaf33e6116598
 ARG OPENSSL_FIPS_HASH=a3cd13d0521d22dd939063d3b4a0d4ce24494374b91408a05bdaca8b681c63d4
 ARG OPENSSL_FIPS_PGP_FINGERPRINT=D3577507FA40E9E2
 ARG OPENSSL_VER=1.0.2k
@@ -10,8 +11,10 @@ ARG BUILD_DIR=~/build/
 
 RUN apk update \
     && apk upgrade \
-    && apk add --update wget gcc gzip tar libc-dev ca-certificates perl make coreutils gnupg linux-headers zlib-dev \
+    && apk add --update wget gcc gzip tar libc-dev ca-certificates perl make coreutils gnupg linux-headers zlib-dev openssl \
     && wget https://www.openssl.org/source/openssl-fips-$OPENSSL_FIPS_VER.tar.gz \
+    && openssl sha1 -hmac etaonrishdlcupfm openssl-fips-$OPENSSL_FIPS_VER.tar.gz | grep $OPENSSL_FIPS_HMACSHA1 \
+    && apk del openssl \
     && wget https://www.openssl.org/source/openssl-fips-$OPENSSL_FIPS_VER.tar.gz.asc \
     && gpg --keyserver http://pgp.mit.edu --recv $OPENSSL_FIPS_PGP_FINGERPRINT \
     && gpg --verify openssl-fips-$OPENSSL_FIPS_VER.tar.gz.asc \
