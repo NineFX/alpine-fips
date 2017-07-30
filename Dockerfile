@@ -9,6 +9,8 @@ ARG OPENSSL_HASH=6b3977c61f2aedf0f96367dcfb5c6e578cf37e7b8d913b4ecb6643c3cb88d8c
 ARG OPENSSL_PGP_FINGERPRINT=D9C4D26D0E604491
 ARG BUILD_DIR=~/build/
 
+COPY test_fips.c /root/test_fips.c
+
 RUN apk update \
     && apk upgrade \
     && apk add --update wget gcc gzip tar libc-dev ca-certificates perl make coreutils gnupg linux-headers zlib-dev openssl \
@@ -40,6 +42,9 @@ RUN apk update \
                                      -Wa,--noexecstack enable-ssl2 \
     && make \
     && make install_sw \
-    && cd .. \
-    && rm -rf openssl* /root/patches /var/cache/apk/* ~/.gnupg/ ~/.ash_history .wget-hsts \
+    && cd /root \
+    && gcc test_fips.c -lssl -lcrypto -otest_fips \
+    && chmod +x test_fips \
+    && ./test_fips \
+    && rm -rf openssl* /root/patches /var/cache/apk/* ~/.gnupg/ ~/.ash_history .wget-hsts test_fips* \
     && apk del wget gcc gzip tar libc-dev ca-certificates perl make coreutils gnupg linux-headers    
